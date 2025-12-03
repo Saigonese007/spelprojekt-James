@@ -9,7 +9,20 @@ namespace spelprojekt_James
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
 
-        Texture2D bird;
+        Texture2D bird, birddown, birdup, background, pipedown, pipeup, deathbase;
+
+        Rectangle birdrec = new Rectangle(325 / 2, 960 / 2, 60, 60);
+
+        KeyboardState keyinput;
+        KeyboardState oldkeyinput;
+
+        Rectangle backgroundrec = new Rectangle(0, 0, 540, 960);
+
+        SpriteFont Font;
+        string displaytext;
+        int score = 0;
+        Vector2 scorePosition = new Vector2(400 / 2, 100);
+        string gameoverText = "Game Over";
 
         public Game1()
         {
@@ -20,7 +33,10 @@ namespace spelprojekt_James
 
         protected override void Initialize()
         {
-            // TODO: Add your initialization logic here
+            // screen ratio 9:16 (540x960)
+            _graphics.PreferredBackBufferWidth = 540;   
+            _graphics.PreferredBackBufferHeight = 960;  
+            _graphics.ApplyChanges();
 
             base.Initialize();
         }
@@ -29,7 +45,14 @@ namespace spelprojekt_James
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
 
-            // TODO: use this.Content to load your game content here
+            background = Content.Load<Texture2D>("background-day");
+            birdup = Content.Load<Texture2D>("yellowbird-upflap");
+            birddown = Content.Load<Texture2D>("yellowbird-downflap");
+            bird = Content.Load<Texture2D>("yellowbird-midflap");
+
+
+            Font = Content.Load<SpriteFont>("Font");
+
         }
 
         protected override void Update(GameTime gameTime)
@@ -37,7 +60,7 @@ namespace spelprojekt_James
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
-            // TODO: Add your update logic here
+
 
             base.Update(gameTime);
         }
@@ -46,7 +69,11 @@ namespace spelprojekt_James
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
-            // TODO: Add your drawing code here
+            _spriteBatch.Begin();
+            _spriteBatch.Draw(background, backgroundrec, Color.White);
+            _spriteBatch.Draw(bird, birdrec, Color.White);
+            _spriteBatch.DrawString(Font, displaytext, scorePosition, Color.White);
+            _spriteBatch.End();
 
             base.Draw(gameTime);
         }

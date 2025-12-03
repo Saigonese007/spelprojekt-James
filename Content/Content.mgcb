@@ -44,11 +44,6 @@
 /processorParam:TextureFormat=Compressed
 /build:Font.spritefont
 
-#begin font.ttf
-/importer:FontDescriptionImporter
-/processor:
-/build:font.ttf
-
 #begin pipe-green.png
 /importer:TextureImporter
 /processor:TextureProcessor

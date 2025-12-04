@@ -10,7 +10,7 @@ namespace spelprojekt_James
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
 
-        Texture2D bird, birddown, birdup, background, pipedown, pipeup, deathbase;
+        Texture2D bird, birddown, birdup, background, pipedown, pipeup, deathbase, background2;
 
         Rectangle birdrec = new Rectangle(325 / 2, 960 / 2, 60, 60);
 
@@ -18,6 +18,7 @@ namespace spelprojekt_James
         KeyboardState oldkeyinput;
 
         Rectangle backgroundrec = new Rectangle(0, 0, 540, 960);
+        Rectangle backgroundrec2 = new Rectangle(0, 0, 540, 0);
         Rectangle deathbaserec = new Rectangle(0, 960 - 200, 540, 200); // 960 - 200 pga line up med bottom 
 
         //Text
@@ -35,13 +36,15 @@ namespace spelprojekt_James
 
 
         // max heights
-        int MaxHeightBottom = 960 - 250; // deathbase ska döda
+        int MaxHeightBottom = 960 - 225; // deathbase ska döda
         int MaxHeightTop = 0;
 
         //Gamover
         bool GameOver = false;
 
-       
+        //single parralax background
+        int ParralaxBackgroundSpeed = -5;
+
 
         public Game1()
         {
@@ -64,6 +67,7 @@ namespace spelprojekt_James
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
 
+            background2 = Content.Load<Texture2D>("background-day2");
             background = Content.Load<Texture2D>("background-day");
             birdup = Content.Load<Texture2D>("yellowbird-upflap");
             birddown = Content.Load<Texture2D>("yellowbird-downflap");
@@ -89,7 +93,7 @@ namespace spelprojekt_James
             if (keyinput.IsKeyDown(Keys.Space) && oldkeyinput.IsKeyUp(Keys.Space))
             {
                 velocity = flapStyrka; // skickar velocity till flapStyrka så att fågeln hoppar upp
-            
+
             }
 
             velocity += gravity; // om man inte hoppar så åker man neråt med gravitationen
@@ -128,9 +132,23 @@ namespace spelprojekt_James
                 displaytext = score.ToString();
             }
 
+            //parallax background
+            backgroundrec.X += ParralaxBackgroundSpeed;
+            backgroundrec.X %= background.Width;
+
+            if (backgroundrec.X >= 0)
+            {
+                backgroundrec2.X = backgroundrec2.X - background.Width;
+            }
+            else
+            {
+                backgroundrec2.X = backgroundrec2.X + background.Width;
+            }
+
 
             base.Update(gameTime);
         }
+        
 
         protected override void Draw(GameTime gameTime)
         {
@@ -138,7 +156,9 @@ namespace spelprojekt_James
 
             _spriteBatch.Begin();
             _spriteBatch.Draw(background, backgroundrec, Color.White);
-           _spriteBatch.Draw(deathbase, deathbaserec, Color.White);
+            _spriteBatch.Draw(background2, backgroundrec, Color.White);
+
+            _spriteBatch.Draw(deathbase, deathbaserec, Color.White);
             _spriteBatch.Draw(bird, birdrec, Color.White);
             _spriteBatch.DrawString(Font, displaytext, scorePosition, Color.White);
             _spriteBatch.End();

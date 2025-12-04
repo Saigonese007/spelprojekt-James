@@ -41,6 +41,8 @@ namespace spelprojekt_James
         //Gamover
         bool GameOver = false;
 
+       
+
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this);
@@ -73,6 +75,7 @@ namespace spelprojekt_James
             Font = Content.Load<SpriteFont>("Font");
 
         }
+
 
         protected override void Update(GameTime gameTime)
         {
@@ -126,9 +129,6 @@ namespace spelprojekt_James
             }
 
 
-
-
-
             base.Update(gameTime);
         }
 
@@ -138,7 +138,7 @@ namespace spelprojekt_James
 
             _spriteBatch.Begin();
             _spriteBatch.Draw(background, backgroundrec, Color.White);
-            _spriteBatch.Draw(deathbase, deathbaserec, Color.White);
+           _spriteBatch.Draw(deathbase, deathbaserec, Color.White);
             _spriteBatch.Draw(bird, birdrec, Color.White);
             _spriteBatch.DrawString(Font, displaytext, scorePosition, Color.White);
             _spriteBatch.End();

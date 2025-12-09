@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
@@ -12,7 +13,7 @@ namespace spelprojekt_James
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
 
-        Texture2D bird, birddown, birdup, background, pipedown, pipeup, deathbase, background2, birdmid, Startknapp, titel, startknapphover, start;
+        Texture2D bird, birddown, birdup, background, pipedown, pipeup, deathbase, background2, birdmid, Startknappnonhover, titel, startknapphover, startKnapp;
 
         Rectangle birdrec = new Rectangle(325 / 2, 960 / 2, 60, 60);
 
@@ -31,7 +32,8 @@ namespace spelprojekt_James
         Vector2 scorePosition = new Vector2(540 / 2 - 20, 100);
         Texture2D gameOverBild;
         Rectangle gameOverBildPos;
-
+        Texture2D RestartText;
+        Rectangle RestartTextPos;
 
         //Gravitation
         //float istället för vector2 pga bara Y-led ska röra sig
@@ -54,14 +56,14 @@ namespace spelprojekt_James
         List<Rectangle> topPipes = new List<Rectangle>();
         List<Rectangle> bottomPipes = new List<Rectangle>();
 
-        int pipeWidth = 0; //temp
-        int pipeHeight = 0; //temp
+        int pipeWidth = 80;  // pipe är 52 i bredd men det är för litet
+        int pipeHeight = 320;  // pipe är 320 i höjd
         int pipeGap = 200; // mellanrum mellan top och bottom pipe
         int pipeSpeed; // ska vara samma som backgroundspeed
+        int pipeSpawn = 150; // frames för när varje ny pipe ska komma
+        int pipeTimer = 0; // ska kolla varje gång pipeSpawn ska köra
 
-        // Skapar första pipe direkt
-        int nextPipeX = 540; // X-pos för nästa pipe
-
+        Random rnd = new Random(); // random variabel
 
 
         public Game1()
@@ -102,12 +104,19 @@ namespace spelprojekt_James
             gameOverBild = Content.Load<Texture2D>("gameoverResized");
             gameOverBildPos = new Rectangle(540 / 2 - gameOverBild.Width / 2, 960 / 2 - gameOverBild.Height / 2, gameOverBild.Width, gameOverBild.Height);
 
-            Startknapp = Content.Load<Texture2D>("FlappyBirdStartImg");
+            Startknappnonhover = Content.Load<Texture2D>("FlappyBirdStartImg");
             titel = Content.Load<Texture2D>("FlappyBirdTitle");
             titelrec = new Rectangle(540 / 2 - 200, 50, titel.Width, titel.Height);
-            StartknappRec = new Rectangle(540 / 2 - 125, 450, Startknapp.Width, Startknapp.Height);
 
+            RestartText = Content.Load<Texture2D>("RestartText");
+            RestartTextPos = new Rectangle(540 / 2 - (RestartText.Width / 4), 300, RestartText.Width / 2, RestartText.Height / 2);
+
+            StartknappRec = new Rectangle(540 / 2 - 125, 450, Startknappnonhover.Width, Startknappnonhover.Height);
             startknapphover = Content.Load<Texture2D>("startKnappHover");
+            
+            //pipes
+            pipeup = Content.Load<Texture2D>("pipe-green");
+            pipedown = Content.Load<Texture2D>("pipe-green-upsidedown");
 
         }
 
@@ -128,7 +137,7 @@ namespace spelprojekt_James
                 if (mouseinput.LeftButton == ButtonState.Pressed && new Rectangle(mouseinput.X, mouseinput.Y, 1, 1).Intersects(StartknappRec))
                 {
                     velocity = 0;
-                    birdrec.Y = 960/2 + deathbaserec.X;
+                    birdrec.Y = 960/2;
                     score = 0;
                     gameState = "playing";
                 }
@@ -137,7 +146,7 @@ namespace spelprojekt_James
                 {
                     // starta spelet
                     velocity = 0;
-                    birdrec.Y = 960 / 2 + deathbaserec.X;
+                    birdrec.Y = 960 / 2 ;
                     score = 0;
 
                     gameState = "playing"; // byt läge till playing
@@ -146,11 +155,11 @@ namespace spelprojekt_James
                 //hovering (behöver fix)
                 if (StartknappRec.Contains(mouseinput.X, mouseinput.Y))
                 {
-                    start = startknapphover;
+                    startKnapp = startknapphover;
                 }
                 else
                 {
-                    start = Startknapp;
+                    startKnapp = Startknappnonhover;
                 }
 
                 return; //stopp här
@@ -211,7 +220,19 @@ namespace spelprojekt_James
                     backgroundrec2.X = backgroundrec.X + 540;
                 }
             }
+            //Pipes (inte klar)
+            if (gameState == "playing")
+            {
+                pipeTimer++; // pipetimer ska ökas hela tiden för att kunna räkna när pipeSpawn ska spawna pipes
 
+                if (pipeTimer >= pipeSpawn)
+                {
+                    pipeTimer = 0; //reset pipetimer så att ny pipespawn kan komma efter när den har ökas till 150
+
+
+                }
+            }
+            
             // Gamestate = gameover
             if (gameState == "gameover")
             {
@@ -223,7 +244,7 @@ namespace spelprojekt_James
                 }
             }
 
-            //Pipes 
+         
 
             
 
@@ -239,7 +260,7 @@ namespace spelprojekt_James
             if (gameState == "menu")
             {
                 _spriteBatch.Draw(titel, titelrec, Color.White); // titelbild
-                _spriteBatch.Draw(Startknapp, StartknappRec, Color.White); // play-knapp
+                _spriteBatch.Draw(startKnapp, StartknappRec, Color.White); // play-knapp
 
                 _spriteBatch.End();
                 return;
@@ -255,6 +276,7 @@ namespace spelprojekt_James
             if (gameState == "gameover")
             {
                 _spriteBatch.Draw(gameOverBild,gameOverBildPos,Color.White );
+                _spriteBatch.Draw(RestartText, RestartTextPos, Color.Black);
             }
             
             _spriteBatch.End();

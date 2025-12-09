@@ -1,6 +1,8 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace spelprojekt_James
@@ -10,40 +12,56 @@ namespace spelprojekt_James
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
 
-        Texture2D bird, birddown, birdup, background, pipedown, pipeup, deathbase, background2;
+        Texture2D bird, birddown, birdup, background, pipedown, pipeup, deathbase, background2, birdmid, Startknapp, titel, startknapphover, start;
 
         Rectangle birdrec = new Rectangle(325 / 2, 960 / 2, 60, 60);
 
         KeyboardState keyinput;
         KeyboardState oldkeyinput;
 
+        MouseState mouseinput;
+
         Rectangle backgroundrec = new Rectangle(0, 0, 540, 960);
-        Rectangle backgroundrec2 = new Rectangle(0, 0, 540, 0);
+        Rectangle backgroundrec2 = new Rectangle(540, 0, 540, 960);
         Rectangle deathbaserec = new Rectangle(0, 960 - 200, 540, 200); // 960 - 200 pga line up med bottom 
 
         //Text
         SpriteFont Font;
-        string displaytext; //ska ändras
         int score = 0;
-        Vector2 scorePosition = new Vector2(540 / 2, 100);
-        string gameoverText = "Game Over";
+        Vector2 scorePosition = new Vector2(540 / 2 - 20, 100);
+        Texture2D gameOverBild;
+        Rectangle gameOverBildPos;
+
 
         //Gravitation
         //float istället för vector2 pga bara Y-led ska röra sig
-        float gravity = 0.4f; // acceleration nedåt varje frame
+        float gravity = 0.4f; // acceleration nedåt varje frame (basically som tyngdkraft)
         float velocity = 0; //hur snabbt fågeln rör sig upp eller ner (0 pga att den står stilla när spelet börjar)
         float flapStyrka = -6f; // hur högt/starkt fågeln ska hoppa när man trycker på space (-6 kändes lagom högt)
 
-
         // max heights
-        int MaxHeightBottom = 960 - 225; // deathbase ska döda
+        int MaxHeightBottom;// deathbase ska döda
         int MaxHeightTop = 0;
 
-        //Gamover
-        bool GameOver = false;
-
         //single parralax background
-        int ParralaxBackgroundSpeed = -5;
+        int BackgroundSpeed = -2;
+
+        //Meny
+        string gameState = "menu"; // möjliga värden: "menu", "playing", "gameover"
+        Rectangle StartknappRec, titelrec;
+
+        ///Pipes
+        List<Rectangle> topPipes = new List<Rectangle>();
+        List<Rectangle> bottomPipes = new List<Rectangle>();
+
+        int pipeWidth = 0; //temp
+        int pipeHeight = 0; //temp
+        int pipeGap = 200; // mellanrum mellan top och bottom pipe
+        int pipeSpeed; // ska vara samma som backgroundspeed
+
+        // Skapar första pipe direkt
+        int nextPipeX = 540; // X-pos för nästa pipe
+
 
 
         public Game1()
@@ -60,6 +78,10 @@ namespace spelprojekt_James
             _graphics.PreferredBackBufferHeight = 960;  
             _graphics.ApplyChanges();
 
+            MaxHeightBottom = deathbaserec.Y - birdrec.Height;
+
+            pipeSpeed = BackgroundSpeed;
+
             base.Initialize();
         }
 
@@ -71,96 +93,170 @@ namespace spelprojekt_James
             background = Content.Load<Texture2D>("background-day");
             birdup = Content.Load<Texture2D>("yellowbird-upflap");
             birddown = Content.Load<Texture2D>("yellowbird-downflap");
-            bird = Content.Load<Texture2D>("yellowbird-midflap");
+            birdmid = Content.Load<Texture2D>("yellowbird-midflap");
+            bird = birdmid;
 
             deathbase = Content.Load<Texture2D>("base");
-
-
             Font = Content.Load<SpriteFont>("Font");
+
+            gameOverBild = Content.Load<Texture2D>("gameoverResized");
+            gameOverBildPos = new Rectangle(540 / 2 - gameOverBild.Width / 2, 960 / 2 - gameOverBild.Height / 2, gameOverBild.Width, gameOverBild.Height);
+
+            Startknapp = Content.Load<Texture2D>("FlappyBirdStartImg");
+            titel = Content.Load<Texture2D>("FlappyBirdTitle");
+            titelrec = new Rectangle(540 / 2 - 200, 50, titel.Width, titel.Height);
+            StartknappRec = new Rectangle(540 / 2 - 125, 450, Startknapp.Width, Startknapp.Height);
+
+            startknapphover = Content.Load<Texture2D>("startKnappHover");
 
         }
 
 
         protected override void Update(GameTime gameTime)
         {
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
-                Exit();
 
             oldkeyinput = keyinput;
             keyinput = Keyboard.GetState();
 
-            //junping mech
-            if (keyinput.IsKeyDown(Keys.Space) && oldkeyinput.IsKeyUp(Keys.Space))
-            {
-                velocity = flapStyrka; // skickar velocity till flapStyrka så att fågeln hoppar upp
+            mouseinput = Mouse.GetState();
 
+            //Meny 
+
+            if (gameState == "menu")
+            {
+                // kolla om vänster musknapp klickas på play-knappen
+                if (mouseinput.LeftButton == ButtonState.Pressed && new Rectangle(mouseinput.X, mouseinput.Y, 1, 1).Intersects(StartknappRec))
+                {
+                    velocity = 0;
+                    birdrec.Y = 960/2 + deathbaserec.X;
+                    score = 0;
+                    gameState = "playing";
+                }
+
+                if (keyinput.IsKeyDown(Keys.Space) && oldkeyinput.IsKeyUp(Keys.Space))
+                {
+                    // starta spelet
+                    velocity = 0;
+                    birdrec.Y = 960 / 2 + deathbaserec.X;
+                    score = 0;
+
+                    gameState = "playing"; // byt läge till playing
+                }
+
+                //hovering (behöver fix)
+                if (StartknappRec.Contains(mouseinput.X, mouseinput.Y))
+                {
+                    start = startknapphover;
+                }
+                else
+                {
+                    start = Startknapp;
+                }
+
+                return; //stopp här
             }
 
-            velocity += gravity; // om man inte hoppar så åker man neråt med gravitationen
+            //gamestate == playing
+            if (gameState == "playing")
+            {
+                //junping mech
+                if (keyinput.IsKeyDown(Keys.Space) && oldkeyinput.IsKeyUp(Keys.Space))
+                {
+                    velocity = flapStyrka; // skickar velocity till flapStyrka så att fågeln hoppar upp
 
-            birdrec.Y += (int)velocity; // flyttar fågeln till antingen gravitation eller upp med flapStryka, omvandla float till int
+                }
 
-            //animation
-            if (velocity < 0)
-            {
-                bird = birdup; // FlapUp när Velocity är större än 0
-            }
-            else if (velocity > 0)
-            {
-                bird = birddown; //Vingar ner när velocity är mindre än 0
-            }
-            else
-            {
-                bird = bird; // natural position
-            }
+                velocity += gravity; // om man inte hoppar så åker man neråt med gravitationen
 
-            // Hamnar man utanför = GameOver
-            if (birdrec.Y <= MaxHeightTop || birdrec.Y >= MaxHeightBottom)
-            {
-                GameOver = true;
-                score = 0; //reset score
-                velocity = 0;
-            }
+                birdrec.Y += (int)velocity; // flyttar fågeln till antingen gravitation eller upp med flapStryka, omvandla float till int
 
-            //GameOver Actions
-            if (GameOver)
-            {
-                displaytext = gameoverText;
-            }
-            else
-            {
-                displaytext = score.ToString();
-            }
+                //animation
+                if (velocity < 0)
+                {
+                    bird = birdup; // FlapUp när Velocity är större än 0
+                }
+                else if (velocity > 0)
+                {
+                    bird = birddown; //Vingar ner när velocity är mindre än 0
+                }
+                else
+                {
+                    bird = birdmid; // natural position dvs mid
+                }
 
-            //parallax background
-            backgroundrec.X += ParralaxBackgroundSpeed;
-            backgroundrec.X %= background.Width;
+                // Hamnar man utanför = GameOver
+                if (birdrec.Y <= MaxHeightTop || birdrec.Y >= MaxHeightBottom)
+                {
+                    gameState = "gameover";
+                    score = 0; //reset score
+                    velocity = 0;
 
-            if (backgroundrec.X >= 0)
-            {
-                backgroundrec2.X = backgroundrec2.X - background.Width;
-            }
-            else
-            {
-                backgroundrec2.X = backgroundrec2.X + background.Width;
+                }
             }
 
+            // Background - flytta båda bakgrundsbilderna åt vänster varje frame
+            if (gameState == "playing")
+            {
+                backgroundrec.X += BackgroundSpeed;
+                backgroundrec2.X += BackgroundSpeed;
 
-            base.Update(gameTime);
+                if (backgroundrec.X <= -540) // om första bakgrunden har åkt helt ut till vänster, flytta den till höger om den andra, 540 px pga backgroundwidth då själva bilden är height: 512 px width: 288 px
+
+                {
+                    backgroundrec.X = backgroundrec2.X + 540;
+                }
+                if (backgroundrec2.X <= -540) // om andra bakgrunden har åkt helt ut till vänster, flytta den till höger till den första
+
+                {
+                    backgroundrec2.X = backgroundrec.X + 540;
+                }
+            }
+
+            // Gamestate = gameover
+            if (gameState == "gameover")
+            {
+                if (keyinput.IsKeyDown(Keys.Enter) && oldkeyinput.IsKeyUp(Keys.Enter))
+                {
+                    birdrec.Y = 960 / 2;
+                    velocity = 0;
+                    gameState = "playing";
+                }
+            }
+
+            //Pipes 
+
+            
+
+
+                base.Update(gameTime);
         }
         
 
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.CornflowerBlue);
 
             _spriteBatch.Begin();
-            _spriteBatch.Draw(background, backgroundrec, Color.White);
-            _spriteBatch.Draw(background2, backgroundrec, Color.White);
+            if (gameState == "menu")
+            {
+                _spriteBatch.Draw(titel, titelrec, Color.White); // titelbild
+                _spriteBatch.Draw(Startknapp, StartknappRec, Color.White); // play-knapp
 
+                _spriteBatch.End();
+                return;
+
+            }
+            _spriteBatch.Draw(background, backgroundrec, Color.White);
+            _spriteBatch.Draw(background2, backgroundrec2, Color.White);
             _spriteBatch.Draw(deathbase, deathbaserec, Color.White);
+
             _spriteBatch.Draw(bird, birdrec, Color.White);
-            _spriteBatch.DrawString(Font, displaytext, scorePosition, Color.White);
+            _spriteBatch.DrawString(Font, score.ToString(), scorePosition, Color.White);
+
+            if (gameState == "gameover")
+            {
+                _spriteBatch.Draw(gameOverBild,gameOverBildPos,Color.White );
+            }
+            
             _spriteBatch.End();
 
             base.Draw(gameTime);

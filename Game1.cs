@@ -63,6 +63,8 @@ namespace spelprojekt_James
         int pipeSpawn = 150; // frames för när varje ny pipe ska komma
         int pipeTimer = 0; // ska kolla varje gång pipeSpawn ska köra
 
+        int PipeX = 540; //X på varje pipe från början
+
         Random rnd = new Random(); // random variabel
  
 
@@ -129,7 +131,13 @@ namespace spelprojekt_James
 
             mouseinput = Mouse.GetState();
 
-            //Meny 
+
+            //Order:
+            // Menu
+            // playing
+            //gameover
+
+            //gamestate = menu
 
             if (gameState == "menu")
             {
@@ -152,7 +160,7 @@ namespace spelprojekt_James
                     gameState = "playing"; // byt läge till playing
                 }
 
-                //hovering (behöver fix)
+                //hovering
                 if (StartknappRec.Contains(mouseinput.X, mouseinput.Y))
                 {
                     startKnapp = startknapphover;
@@ -229,6 +237,26 @@ namespace spelprojekt_James
                 {
                     pipeTimer = 0; //reset pipetimer så att ny pipespawn kan komma efter när den har ökas till 150
 
+                    //slumpa pipe höjder men ändå så att det finns en gap (pipeGap)
+                    int minheight = 100; // den ska minst vara 100 px
+                    int maxheight = 960 - pipeGap - deathbaserec.Height - 100;
+                    int topMaxheight = rnd.Next(minheight, maxheight); // next eftersom den då slumpar ett icke-negativt tal
+
+                    //skapa pipes och lägg in i listan (Rectangle pga intersects)
+                    Rectangle TopPipe = new Rectangle(PipeX, 0, pipeWidth, topMaxheight);
+
+                    //lägg till i listan
+                    topPipes.Add(TopPipe);
+
+                    //förflytta pipes med background speed 
+                    for (int i = 0; i < topPipes.Count; i++)
+                    {
+                        Rectangle Top = topPipes[i]; //temp variabel eftersom ändring på List inte går
+                        Top.X += pipeSpeed;
+                        topPipes[i] = Top; // tillbaka in i list
+                    }
+                     
+
 
                 }
             }
@@ -243,12 +271,6 @@ namespace spelprojekt_James
                     gameState = "playing";
                 }
             }
-
-         
-
-            
-
-
                 base.Update(gameTime);
         }
         
@@ -272,6 +294,12 @@ namespace spelprojekt_James
 
             _spriteBatch.Draw(bird, birdrec, Color.White);
             _spriteBatch.DrawString(Font, score.ToString(), scorePosition, Color.White);
+
+            //måla ut pipes
+            for (int i = 0; i < topPipes.Count; i++)
+            {
+                _spriteBatch.Draw(pipeup, topPipes[i], Color.White);
+            }
 
             if (gameState == "gameover")
             {

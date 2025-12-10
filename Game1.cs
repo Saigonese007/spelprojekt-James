@@ -61,7 +61,7 @@ namespace spelprojekt_James
         int pipeGap = 200; // mellanrum mellan top och bottom pipe
         int pipeSpeed; // ska vara samma som backgroundspeed
         int pipeSpawn = 150; // frames för när varje ny pipe ska komma
-        int pipeTimer = 0; // ska kolla varje gång pipeSpawn ska köra
+        int pipeTimer = 75; // ska kolla varje gång pipeSpawn ska köra
 
         int PipeX = 540; //X på varje pipe från början
 
@@ -239,31 +239,57 @@ namespace spelprojekt_James
 
                     //slumpa pipe höjder men ändå så att det finns en gap (pipeGap)
                     int minheight = 100; // den ska minst vara 100 px
-                    int maxheight = 960 - pipeGap - deathbaserec.Height;
+                    int maxheight = 960 - pipeGap - deathbaserec.Height - 100;
                     int topMaxheight = rnd.Next(minheight, maxheight); // next eftersom den då slumpar ett icke-negativt tal
 
                     //skapa pipes och lägg in i listan (Rectangle pga intersects(collision))
                     Rectangle TopPipe = new Rectangle(PipeX, 0, pipeWidth, topMaxheight);
+                    Rectangle BottomPipe = new Rectangle(PipeX, topMaxheight + pipeGap, pipeWidth, 960 - (topMaxheight + pipeGap + deathbaserec.Height));
 
                     //lägg till i listan
                     topPipes.Add(TopPipe);
-
-                    //förflytta pipes med background speed 
-                    for (int i = 0; i < topPipes.Count; i++)
-                    {
-                        Rectangle Top = topPipes[i]; //temp variabel eftersom ändring på List inte går
-                        Top.X += pipeSpeed;
-                        topPipes[i] = Top; // tillbaka in i list
-                    }
-                     
-
+                    bottomPipes.Add(BottomPipe);
 
                 }
+                //förflytta pipes med background speed 
+                for (int i = 0; i < topPipes.Count; i++)
+                {
+                    Rectangle Top = topPipes[i]; //temp variabel eftersom ändring på List inte går
+                    Top.X += pipeSpeed;
+                    topPipes[i] = Top; // tillbaka in i list
+
+                    // bottom exakt samma som top förutom när man skapar den pga olika positioner
+                    Rectangle Bottom = bottomPipes[i];
+                    Bottom.X += pipeSpeed;
+                    bottomPipes[i] = Bottom;
+                }
+                //kollision (behöver fix)
+                for (int i = 0; i < topPipes.Count; i++)
+                {
+                    if (!birdrec.Intersects(topPipes[i]) || !birdrec.Intersects(topPipes[i]))
+                    {
+                        score++; 
+                    }
+
+                    if (birdrec.Intersects(topPipes[i]) || birdrec.Intersects(topPipes[i]))
+                    {
+                        gameState = "gameover";
+                    }
+                }
+
+                
             }
             
+
             // Gamestate = gameover
             if (gameState == "gameover")
             {
+                for (int i = 0; i < topPipes.Count; i++)
+                {
+                    topPipes.RemoveAt(i);
+                    bottomPipes.RemoveAt(i);
+                }
+
                 if (keyinput.IsKeyDown(Keys.Enter) && oldkeyinput.IsKeyUp(Keys.Enter))
                 {
                     birdrec.Y = 960 / 2;
@@ -290,16 +316,19 @@ namespace spelprojekt_James
             }
             _spriteBatch.Draw(background, backgroundrec, Color.White);
             _spriteBatch.Draw(background2, backgroundrec2, Color.White);
+            //måla ut pipes
+            for (int i = 0; i < topPipes.Count; i++)
+            {
+                _spriteBatch.Draw(pipedown, topPipes[i], Color.White);
+                _spriteBatch.Draw(pipeup, bottomPipes[i], Color.White);
+            }
+
             _spriteBatch.Draw(deathbase, deathbaserec, Color.White);
 
             _spriteBatch.Draw(bird, birdrec, Color.White);
             _spriteBatch.DrawString(Font, score.ToString(), scorePosition, Color.White);
 
-            //måla ut pipes
-            for (int i = 0; i < topPipes.Count; i++)
-            {
-                _spriteBatch.Draw(pipedown, topPipes[i], Color.White);
-            }
+            
 
             if (gameState == "gameover")
             {

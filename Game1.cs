@@ -64,7 +64,7 @@ namespace spelprojekt_James
         int pipeTimer = 0; // ska kolla varje gång pipeSpawn ska köra
 
         Random rnd = new Random(); // random variabel
-
+ 
 
         public Game1()
         {

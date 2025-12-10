@@ -239,10 +239,10 @@ namespace spelprojekt_James
 
                     //slumpa pipe höjder men ändå så att det finns en gap (pipeGap)
                     int minheight = 100; // den ska minst vara 100 px
-                    int maxheight = 960 - pipeGap - deathbaserec.Height - 100;
+                    int maxheight = 960 - pipeGap - deathbaserec.Height;
                     int topMaxheight = rnd.Next(minheight, maxheight); // next eftersom den då slumpar ett icke-negativt tal
 
-                    //skapa pipes och lägg in i listan (Rectangle pga intersects)
+                    //skapa pipes och lägg in i listan (Rectangle pga intersects(collision))
                     Rectangle TopPipe = new Rectangle(PipeX, 0, pipeWidth, topMaxheight);
 
                     //lägg till i listan
@@ -298,7 +298,7 @@ namespace spelprojekt_James
             //måla ut pipes
             for (int i = 0; i < topPipes.Count; i++)
             {
-                _spriteBatch.Draw(pipeup, topPipes[i], Color.White);
+                _spriteBatch.Draw(pipedown, topPipes[i], Color.White);
             }
 
             if (gameState == "gameover")

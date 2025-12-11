@@ -49,6 +49,12 @@
 /processorParam:TextureFormat=Color
 /build:base.png
 
+#begin die.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:die.wav
+
 #begin FlappyBirdStartImg.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -92,6 +98,12 @@
 /processorParam:TextureFormat=Color
 /build:gameoverResized.png
 
+#begin hit.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:hit.wav
+
 #begin pipe-green-upsidedown.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -116,6 +128,12 @@
 /processorParam:TextureFormat=Color
 /build:pipe-green.png
 
+#begin point.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:point.wav
+
 #begin RestartText.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -139,6 +157,12 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:startKnappHover.png
+
+#begin wing.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:wing.wav
 
 #begin yellowbird-downflap.png
 /importer:TextureImporter

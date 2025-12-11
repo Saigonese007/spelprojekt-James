@@ -58,7 +58,6 @@ namespace spelprojekt_James
         List<Rectangle> bottomPipes = new List<Rectangle>();
 
         int pipeWidth = 80;  // pipe är 52 i bredd men det är för litet
-        int pipeHeight = 320;  // pipe är 320 i höjd
         int pipeGap = 200; // mellanrum mellan top och bottom pipe
         int pipeSpeed; // ska vara samma som backgroundspeed
         int pipeSpawn = 150; // frames för när varje ny pipe ska komma
@@ -70,11 +69,17 @@ namespace spelprojekt_James
 
         //scoring
         List<Rectangle> pipeGaps = new List<Rectangle>();
-        int tempscore;
 
         //ljud och sound effects samt background music
 
         SoundEffect död, hit, poäng, vinge;
+        bool dödSpelat = false; // för att den ska spelas en gång och inte spammas
+        bool hitSpelat = false;
+        bool poängSpelat = false;
+
+        // last score
+        int highscore;
+        Vector2 highscoreposition = new Vector2(540 / 3 - 100, 20);
 
 
         public Game1()
@@ -161,7 +166,6 @@ namespace spelprojekt_James
                 {
                     velocity = 0;
                     birdrec.Y = 960/2 - deathbase.Height;
-                    score = 0;
                     gameState = "playing";
                 }
 
@@ -170,7 +174,6 @@ namespace spelprojekt_James
                     // starta spelet
                     velocity = 0;
                     birdrec.Y = 960 / 2 - deathbase.Height ;
-                    score = 0;
 
                     gameState = "playing"; // byt läge till playing
                 }
@@ -217,15 +220,17 @@ namespace spelprojekt_James
                     bird = birdmid; // natural position dvs mid
                 }
 
-                // Hamnar man utanför = GameOver
-                if (birdrec.Y <= MaxHeightTop || birdrec.Y >= MaxHeightBottom)
+                // Hamnar man utanför = GameOver samt spelar hit en gång
+                if ((birdrec.Y <= MaxHeightTop || birdrec.Y >= MaxHeightBottom) && hitSpelat == false)
                 {
                     hit.Play();
+                    hitSpelat = true;
                     gameState = "gameover";
-                    score = 0; //reset score
                     velocity = 0;
+                    
 
                 }
+              
 
                 
             }
@@ -273,6 +278,9 @@ namespace spelprojekt_James
                     bottomPipes.Add(BottomPipe);
                     pipeGaps.Add(PipeGap);
 
+                    poängSpelat = false; // reset när nya pipes spawnas in så att varje får ett ljud
+
+
                 }
                 //förflytta pipes med background speed 
                 for (int i = 0; i < topPipes.Count; i++)
@@ -294,19 +302,24 @@ namespace spelprojekt_James
                 for (int i = 0; i < topPipes.Count; i++)
                 {
 
-                    if (birdrec.Intersects(topPipes[i]) || birdrec.Intersects(bottomPipes[i]))
+                    if ((birdrec.Intersects(topPipes[i]) || birdrec.Intersects(bottomPipes[i])) && hitSpelat == false)
                     {
-                        hit.Play();
                         gameState = "gameover";
+                        hit.Play();
+                        hitSpelat = true;
+                        velocity = 0;
                     }
-                    if (birdrec.Intersects(pipeGaps[i]))
+                    
+                    if (birdrec.Intersects(pipeGaps[i]) && poängSpelat == false) // pipegaps = score++
                     {
                         
-                        tempscore++;
-                        score = tempscore / 60;
+                        score++;
                         poäng.Play();
+                        poängSpelat = true;
 
+                        
                     }
+                    
                     
                 }
 
@@ -316,19 +329,36 @@ namespace spelprojekt_James
             // Gamestate = gameover
             if (gameState == "gameover")
             {
-                score = 0;
-                död.Play();
-                for (int i = 0; i < topPipes.Count; i++)
+
+                if (score > highscore)
                 {
-                    topPipes.RemoveAt(i);
-                    bottomPipes.RemoveAt(i);
+                    highscore = score;
                 }
+
+                if (dödSpelat == false)
+                {
+                    död.Play();
+                    dödSpelat = true;
+                }
+
+                
+
+                topPipes.Clear();
+                bottomPipes.Clear();
+                pipeGaps.Clear();
 
                 if (keyinput.IsKeyDown(Keys.Enter) && oldkeyinput.IsKeyUp(Keys.Enter))
                 {
+                    score = 0;
                     birdrec.Y = (960 / 2) - deathbase.Height;
                     velocity = 0;
                     gameState = "playing";
+
+
+                    //reset ljud
+                    dödSpelat = false;
+                    hitSpelat = false;
+                    poängSpelat = false;
                 }
             }
                 base.Update(gameTime);
@@ -361,6 +391,7 @@ namespace spelprojekt_James
 
             _spriteBatch.Draw(bird, birdrec, Color.White);
             _spriteBatch.DrawString(Font, score.ToString(), scorePosition, Color.Black);
+            _spriteBatch.DrawString(Font, "HighScore: " + highscore.ToString(), highscoreposition, Color.White);
 
 
             if (gameState == "gameover")

@@ -266,18 +266,15 @@ namespace spelprojekt_James
                 //kollision (behöver fix)
                 for (int i = 0; i < topPipes.Count; i++)
                 {
-                    if (!birdrec.Intersects(topPipes[i]) || !birdrec.Intersects(topPipes[i]))
-                    {
-                        score++; 
-                    }
 
-                    if (birdrec.Intersects(topPipes[i]) || birdrec.Intersects(topPipes[i]))
+                    if (birdrec.Intersects(topPipes[i]) || birdrec.Intersects(bottomPipes[i]))
                     {
                         gameState = "gameover";
                     }
                 }
-
                 
+
+
             }
             
 
